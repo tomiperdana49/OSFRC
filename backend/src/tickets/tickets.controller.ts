@@ -1,14 +1,19 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
 import { TicketsService } from './tickets.service';
 import { TicketStatus } from '../entities/ticket.entity';
+import { UserRole } from '../entities/user.entity';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
 @Controller('tickets')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class TicketsController {
     constructor(private readonly ticketsService: TicketsService) { }
 
     @Get()
-    findAll() {
-        return this.ticketsService.findAll();
+    findAll(@Req() req: any) {
+        return this.ticketsService.findAll(req.user);
     }
 
     @Get(':id')
@@ -17,6 +22,7 @@ export class TicketsController {
     }
 
     @Post()
+    @Roles(UserRole.ADMIN, UserRole.RESIDENT)
     create(@Body() data: any) {
         return this.ticketsService.create(data);
     }
@@ -38,12 +44,14 @@ export class TicketsController {
     @Post(':id/comments')
     addComment(
         @Param('id') id: string,
-        @Body() body: { authorId: number, text: string }
+        @Body() body: { text: string, imageUrl?: string },
+        @Req() req: any
     ) {
-        return this.ticketsService.addComment(+id, body.authorId, body.text);
+        return this.ticketsService.addComment(+id, req.user.id, body.text, body.imageUrl);
     }
 
     @Delete(':id')
+    @Roles(UserRole.ADMIN)
     remove(@Param('id') id: string) {
         return this.ticketsService.remove(+id);
     }

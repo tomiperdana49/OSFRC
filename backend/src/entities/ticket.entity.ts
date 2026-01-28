@@ -1,13 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { Unit } from './unit.entity';
 import { User } from './user.entity';
-
-export enum TicketCategory {
-    AIR = 'Air',
-    INTERNET = 'Internet',
-    SECURITY = 'Security',
-    OTHER = 'Other',
-}
+import { TicketCategory } from './ticket-category.entity';
 
 export enum TicketStatus {
     NEW = 'New',
@@ -31,10 +25,7 @@ export class Ticket {
     @ManyToOne(() => Unit, (unit) => unit.tickets, { onDelete: 'CASCADE' })
     unit: Unit;
 
-    @Column({
-        type: 'enum',
-        enum: TicketCategory,
-    })
+    @ManyToOne(() => TicketCategory)
     category: TicketCategory;
 
     @Column({
@@ -57,11 +48,17 @@ export class Ticket {
     @ManyToOne(() => User, (user) => user.assignedTickets, { nullable: true })
     assignedTo: User;
 
+    @Column({ nullable: true })
+    contactPerson: string;
+
     @OneToMany(() => TicketComment, (comment) => comment.ticket)
     comments: TicketComment[];
 
     @Column({ nullable: true })
     estimatedCompletion: Date;
+
+    @Column({ nullable: true })
+    startedAt: Date;
 
     @Column({ nullable: true })
     closedAt: Date;
@@ -80,6 +77,9 @@ export class TicketComment {
 
     @Column('text')
     text: string;
+
+    @Column({ nullable: true })
+    imageUrl: string;
 
     @ManyToOne(() => Ticket, (ticket) => ticket.comments, { onDelete: 'CASCADE' })
     ticket: Ticket;

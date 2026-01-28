@@ -1,4 +1,4 @@
-# Operational System for Residential Complex (Wardix)
+# Operational System for Residential Complex
 
 Sistem manajemen kompleks residensial dengan dashboard premium sesuai desain.
 
@@ -15,7 +15,7 @@ Sistem manajemen kompleks residensial dengan dashboard premium sesuai desain.
 ## Setup & Running
 
 ### 1. Database Setup
-Buat database bernama `wardix_residential_complex` di MariaDB lokal Anda.
+Buat database bernama `residential_complex` di MariaDB lokal Anda.
 Atur kredensial di `backend/.env`.
 
 ### 2. Backend

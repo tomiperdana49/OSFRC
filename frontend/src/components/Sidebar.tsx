@@ -7,7 +7,8 @@ import {
     ToolOutlined,
     NotificationOutlined,
     UserOutlined,
-    BookOutlined
+    BookOutlined,
+    SettingOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -17,15 +18,27 @@ const Sidebar = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const menuItems = [
+    // Get user from localStorage
+    const userStr = localStorage.getItem('user');
+    const user = userStr ? JSON.parse(userStr) : null;
+    const role = user?.role;
+
+    const allItems = [
         { key: '/', icon: <DashboardOutlined />, label: 'Dashboard' },
-        { key: '/units', icon: <HomeOutlined />, label: 'Units Management' },
-        { key: '/billing', icon: <FileTextOutlined />, label: 'Billing & Finance' },
+        { key: '/units', icon: <HomeOutlined />, label: 'Units Management', roles: ['admin'] },
+        { key: '/billing', icon: <FileTextOutlined />, label: 'Billing & Finance', roles: ['admin'] },
         { key: '/tickets', icon: <ToolOutlined />, label: 'Ticketing' },
-        { key: '/announcements', icon: <NotificationOutlined />, label: 'Announcements' },
-        { key: '/users', icon: <UserOutlined />, label: 'User Directory' },
-        { key: '/sla-guide', icon: <BookOutlined />, label: 'SLA Guide' },
+        { key: '/announcements', icon: <NotificationOutlined />, label: 'Announcements', roles: ['admin'] },
+        { key: '/users', icon: <UserOutlined />, label: 'User Directory', roles: ['admin'] },
+        { key: '/sla-guide', icon: <BookOutlined />, label: 'SLA Guide', roles: ['admin'] },
+        { key: '/settings', icon: <SettingOutlined />, label: 'Settings', roles: ['admin'] },
     ];
+
+    // Filter items based on role
+    const menuItems = allItems.filter(item => {
+        if (!item.roles) return true; // Accessible by all
+        return role && item.roles.includes(role);
+    });
 
     return (
         <Sider
@@ -41,7 +54,7 @@ const Sidebar = () => {
             </div>
             <Menu
                 mode="inline"
-                selectedKeys={[location.pathname]}
+                selectedKeys={[location.pathname === '/dashboard' ? '/' : location.pathname]}
                 items={menuItems}
                 onClick={({ key }) => navigate(key)}
                 className="pt-4 border-none"

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Tag, Button, Typography, Spin, message, Card, Row, Col, Modal, Form, Select, Space, Input, List, Divider, Avatar, Badge, DatePicker } from 'antd';
 import {
     ToolOutlined,
     PlusOutlined,
@@ -11,8 +10,11 @@ import {
     AlertOutlined,
     UserOutlined,
     CalendarOutlined,
-    SearchOutlined
+    SearchOutlined,
+    DeleteOutlined,
+    UploadOutlined
 } from '@ant-design/icons';
+import { Table, Tag, Button, Typography, Spin, message, Card, Row, Col, Modal, Form, Select, Space, Input, List, Divider, Avatar, Badge, DatePicker, Popconfirm, Upload, Image } from 'antd';
 import api from '../api';
 import dayjs from 'dayjs';
 import { useLocation } from 'react-router-dom';
@@ -30,6 +32,13 @@ const TicketsPage = () => {
     const [searchText, setSearchText] = useState('');
     const [units, setUnits] = useState<any[]>([]);
     const [technicians, setTechnicians] = useState<any[]>([]);
+    const [categories, setCategories] = useState<any[]>([]);
+
+    // Get user from localStorage
+    const userStr = localStorage.getItem('user');
+    const user = userStr ? JSON.parse(userStr) : null;
+    const role = user?.role;
+    const userId = user?.id;
 
     // Modals
     const [isAssignModalVisible, setIsAssignModalVisible] = useState(false);
@@ -39,6 +48,7 @@ const TicketsPage = () => {
     // Selection
     const [selectedTicket, setSelectedTicket] = useState<any>(null);
     const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
+    const [commentImageUrl, setCommentImageUrl] = useState<string | null>(null);
 
     // Forms
     const [assignForm] = Form.useForm();
@@ -64,12 +74,14 @@ const TicketsPage = () => {
 
     const fetchAuxData = async () => {
         try {
-            const [usersRes, unitsRes] = await Promise.all([
+            const [usersRes, unitsRes, categoriesRes] = await Promise.all([
                 api.get('/users'),
-                api.get('/units')
+                api.get('/units'),
+                api.get('/ticket-categories')
             ]);
             setTechnicians(usersRes.data.filter((u: any) => u.role === 'staff' || u.role === 'admin'));
             setUnits(unitsRes.data);
+            setCategories(categoriesRes.data);
         } catch (err) {
             console.error(err);
         }
@@ -119,10 +131,11 @@ const TicketsPage = () => {
             const values = await commentForm.validateFields();
             await api.post(`/tickets/${selectedTicket?.id}/comments`, {
                 text: values.text,
-                authorId: 1 // Default to first admin for demo
+                imageUrl: commentImageUrl
             });
             message.success('Comment added');
             commentForm.resetFields();
+            setCommentImageUrl(null);
             fetchTicketDetail(selectedTicket.id); // Refresh detail
         } catch (error) {
             message.error('Failed to post comment');
@@ -134,7 +147,7 @@ const TicketsPage = () => {
             if (resolutionComment) {
                 await api.post(`/tickets/${id}/comments`, {
                     text: resolutionComment,
-                    authorId: 1
+                    imageUrl: commentImageUrl
                 });
             }
             await api.patch(`/tickets/${id}/status`, { status: 'Closed' });
@@ -146,6 +159,17 @@ const TicketsPage = () => {
         }
     };
 
+    const handleStartWork = async (id: number) => {
+        try {
+            await api.patch(`/tickets/${id}/status`, { status: 'In Progress' });
+            message.success('Work started on this ticket');
+            fetchTicketDetail(id);
+            fetchData();
+        } catch (error) {
+            message.error('Failed to start work');
+        }
+    };
+
     const handleResolveWithComment = async () => {
         try {
             const values = await commentForm.validateFields();
@@ -153,6 +177,16 @@ const TicketsPage = () => {
             commentForm.resetFields();
         } catch (error) {
             message.error('Please enter a resolution comment to close the ticket');
+        }
+    };
+
+    const handleDeleteTicket = async (id: number) => {
+        try {
+            await api.delete(`/tickets/${id}`);
+            message.success('Ticket deleted successfully');
+            fetchData();
+        } catch (error) {
+            message.error('Failed to delete ticket');
         }
     };
 
@@ -168,7 +202,7 @@ const TicketsPage = () => {
             render: (id: number) => <span className="font-mono text-gray-400">#{id}</span>
         },
         { title: 'Unit', dataIndex: 'unit', key: 'unit', render: (u: any) => <b className="text-blue-700">{u?.unitNumber}</b> },
-        { title: 'Category', dataIndex: 'category', key: 'category' },
+        { title: 'Category', dataIndex: 'category', key: 'category', render: (c: any) => c?.name || '-' },
         {
             title: 'Priority',
             dataIndex: 'priority',
@@ -187,12 +221,8 @@ const TicketsPage = () => {
             key: 'estimatedCompletion',
             render: (date: string) => date ? <Tag color="warning" icon={<ClockCircleOutlined />}>{dayjs(date).format('DD MMM HH:mm')}</Tag> : <span className="text-gray-300">-</span>
         },
-        {
-            title: 'Closed At',
-            dataIndex: 'closedAt',
-            key: 'closedAt',
-            render: (date: string) => date ? <Tag color="success" icon={<CheckCircleOutlined />}>{dayjs(date).format('DD MMM HH:mm')}</Tag> : <span className="text-gray-300">-</span>
-        },
+        { title: 'Closed At', dataIndex: 'closedAt', key: 'closedAt', render: (date: string) => date ? <Tag color="success" icon={<CheckCircleOutlined />}>{dayjs(date).format('DD MMM HH:mm')}</Tag> : <span className="text-gray-300">-</span> },
+        { title: 'Contact Person', dataIndex: 'contactPerson', key: 'contactPerson', render: (val: string) => val || <span className="text-gray-300">-</span> },
         { title: 'Technician', dataIndex: 'assignedTo', key: 'assignedTo', render: (a: any) => a?.name || <span className="text-gray-300 italic">None</span> },
         {
             title: 'Actions',
@@ -215,6 +245,18 @@ const TicketsPage = () => {
                         >
                             {record.assignedTo ? 'Re-assign' : 'Assign'}
                         </Button>
+                    )}
+                    {role === 'admin' && (
+                        <Popconfirm
+                            title="Delete Ticket"
+                            description="Are you sure you want to delete this ticket? This action cannot be undone."
+                            onConfirm={() => handleDeleteTicket(record.id)}
+                            okText="Yes"
+                            cancelText="No"
+                            okButtonProps={{ danger: true }}
+                        >
+                            <Button size="small" danger icon={<DeleteOutlined />} />
+                        </Popconfirm>
                     )}
                 </Space>
             ),
@@ -240,9 +282,11 @@ const TicketsPage = () => {
                                 onChange={(e) => setSearchText(e.target.value)}
                                 allowClear
                             />
-                            <Button type="primary" icon={<PlusOutlined />} size="large" className="bg-blue-600 h-12 px-8 rounded-lg shadow-blue-200 shadow-lg" onClick={() => setIsCreateModalVisible(true)}>
-                                New Request
-                            </Button>
+                            {role !== 'staff' && (
+                                <Button type="primary" icon={<PlusOutlined />} size="large" className="bg-blue-600 h-12 px-8 rounded-lg shadow-blue-200 shadow-lg" onClick={() => setIsCreateModalVisible(true)}>
+                                    New Request
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </Col>
@@ -253,8 +297,11 @@ const TicketsPage = () => {
                             columns={columns}
                             dataSource={tickets.filter(t => {
                                 // First: Filter by Status (from Dashboard)
-                                if (statusFilter === 'open') return t.status === 'New' || t.status === 'In Progress';
+                                if (statusFilter === 'new') return t.status === 'New';
+                                if (statusFilter === 'in-progress') return t.status === 'In Progress';
+                                if (statusFilter === 'closed') return t.status === 'Closed';
                                 if (statusFilter === 'overdue') return t.status === 'Overdue';
+                                if (statusFilter === 'open') return t.status === 'New' || t.status === 'In Progress';
                                 return true;
                             }).filter(t => {
                                 // Second: Filter by Search Text
@@ -262,7 +309,8 @@ const TicketsPage = () => {
                                 return (
                                     t.id.toString().includes(s) ||
                                     (t.unit?.unitNumber || '').toLowerCase().includes(s) ||
-                                    t.category.toLowerCase().includes(s) ||
+                                    (t.category?.name || '').toLowerCase().includes(s) ||
+                                    (t.contactPerson || '').toLowerCase().includes(s) ||
                                     (t.assignedTo?.name || '').toLowerCase().includes(s)
                                 );
                             })}
@@ -299,12 +347,9 @@ const TicketsPage = () => {
                             </Form.Item>
                         </Col>
                         <Col span={12}>
-                            <Form.Item name="category" label="Category" rules={[{ required: true }]}>
+                            <Form.Item name="categoryId" label="Category" rules={[{ required: true }]}>
                                 <Select placeholder="Select category">
-                                    <Option value="Air">Air (Water)</Option>
-                                    <Option value="Internet">Internet</Option>
-                                    <Option value="Security">Security</Option>
-                                    <Option value="Other">Other</Option>
+                                    {categories.map(c => <Option key={c.id} value={c.id}>{c.name}</Option>)}
                                 </Select>
                             </Form.Item>
                         </Col>
@@ -316,6 +361,9 @@ const TicketsPage = () => {
                             <Option value="High">High</Option>
                             <Option value="Critical">Critical</Option>
                         </Select>
+                    </Form.Item>
+                    <Form.Item name="contactPerson" label="Contact Person (Name/Phone)" rules={[{ required: true, message: 'Harap isi kontak orang yang bisa dihubungi' }]}>
+                        <Input placeholder="e.g. Pak Budi (0812...)" />
                     </Form.Item>
                     <Form.Item name="description" label="Problem Description" rules={[{ required: true, min: 10 }]}>
                         <Input.TextArea rows={4} placeholder="Please describe the issue in detail..." />
@@ -335,11 +383,16 @@ const TicketsPage = () => {
                     <div className="py-2">
                         <div className="flex justify-between items-start mb-6">
                             <div>
-                                <Title level={3} className="mb-1">{selectedTicket.category} Issue</Title>
+                                <Title level={3} className="mb-1">{selectedTicket.category?.name || 'Standard'} Issue</Title>
                                 <Text className="text-gray-400">Unit: <b>{selectedTicket.unit?.unitNumber}</b> • Reported on {new Date(selectedTicket.createdAt).toLocaleString()}</Text>
                                 {selectedTicket.estimatedCompletion && (
                                     <div className="mt-2">
                                         <Tag color="warning" icon={<CalendarOutlined />}>Target Selesai: {dayjs(selectedTicket.estimatedCompletion).format('DD MMMM YYYY, HH:mm')}</Tag>
+                                    </div>
+                                )}
+                                {selectedTicket.startedAt && (
+                                    <div className="mt-2">
+                                        <Tag color="processing" icon={<ClockCircleOutlined />}>Pengerjaan Dimulai: {dayjs(selectedTicket.startedAt).format('DD MMMM YYYY, HH:mm')}</Tag>
                                     </div>
                                 )}
                                 {selectedTicket.closedAt && (
@@ -347,10 +400,26 @@ const TicketsPage = () => {
                                         <Tag color="success" icon={<CheckCircleOutlined />}>Waktu Selesai: {dayjs(selectedTicket.closedAt).format('DD MMMM YYYY, HH:mm')}</Tag>
                                     </div>
                                 )}
+                                <div className="mt-4">
+                                    <Text type="secondary">Contact Person:</Text>
+                                    <div className="font-bold text-lg">{selectedTicket.contactPerson || '-'}</div>
+                                </div>
                             </div>
                             <div className="text-right">
                                 <Tag color={statusColors[selectedTicket.status]} className="px-4 py-1 rounded-full">{selectedTicket.status.toUpperCase()}</Tag>
                                 <div className="mt-2"><Tag color={priorityColors[selectedTicket.priority]}>PRIORITY: {selectedTicket.priority}</Tag></div>
+                                {selectedTicket.status === 'New' && selectedTicket.assignedTo?.id === userId && (
+                                    <div className="mt-4">
+                                        <Button
+                                            type="primary"
+                                            className="bg-orange-500 border-none w-full"
+                                            icon={<ToolOutlined />}
+                                            onClick={() => handleStartWork(selectedTicket.id)}
+                                        >
+                                            Start Work
+                                        </Button>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -369,7 +438,16 @@ const TicketsPage = () => {
                                     <List.Item.Meta
                                         avatar={<Avatar icon={<UserOutlined />} />}
                                         title={<div className="flex justify-between"><b>{item.author?.name}</b> <Text type="secondary" className="text-[10px]"><ClockCircleOutlined /> {new Date(item.createdAt).toLocaleTimeString()}</Text></div>}
-                                        description={item.text}
+                                        description={
+                                            <div>
+                                                <Paragraph className="m-0">{item.text}</Paragraph>
+                                                {item.imageUrl && (
+                                                    <div className="mt-2">
+                                                        <Image src={item.imageUrl} width={120} className="rounded-md shadow-sm border" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        }
                                     />
                                 </List.Item>
                             )}
@@ -383,7 +461,28 @@ const TicketsPage = () => {
                                     <Form.Item name="text" rules={[{ required: true }]}>
                                         <Input.TextArea placeholder="Enter any update or repair notes..." rows={3} />
                                     </Form.Item>
-                                    <div className="flex justify-between">
+                                    <div className="mb-4">
+                                        <Upload
+                                            action={`${(import.meta as any).env.VITE_API_URL || 'http://localhost:3000'}/upload`}
+                                            listType="picture"
+                                            maxCount={1}
+                                            headers={{
+                                                Authorization: `Bearer ${localStorage.getItem('token')}`
+                                            }}
+                                            onChange={(info) => {
+                                                if (info.file.status === 'done') {
+                                                    setCommentImageUrl(info.file.response.url);
+                                                    message.success('Bukti gambar berhasil diunggah');
+                                                } else if (info.file.status === 'error') {
+                                                    message.error('Gagal mengunggah gambar');
+                                                }
+                                            }}
+                                            onRemove={() => setCommentImageUrl(null)}
+                                        >
+                                            <Button icon={<UploadOutlined />}>Upload Bukti Gambar</Button>
+                                        </Upload>
+                                    </div>
+                                    <div className="flex justify-between mt-4">
                                         <Button type="primary" htmlType="submit">Submit Update</Button>
                                         {selectedTicket.status === 'In Progress' && (
                                             <Button

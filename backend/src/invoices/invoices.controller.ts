@@ -26,7 +26,24 @@ export class InvoicesController {
     }
 
     @Post(':id/pay')
-    recordPayment(@Param('id') id: string, @Body() body: { amount: number }) {
-        return this.invoicesService.recordPayment(+id, body.amount);
+    recordPayment(
+        @Param('id') id: string,
+        @Body() body: {
+            amount: number,
+            paymentDate?: string,
+            paymentMethod?: string,
+            bankName?: string,
+            referenceNumber?: string
+        }
+    ) {
+        const pDate = body.paymentDate ? new Date(body.paymentDate) : undefined;
+        return this.invoicesService.recordPayment(
+            +id,
+            body.amount,
+            pDate,
+            body.paymentMethod,
+            body.bankName,
+            body.referenceNumber
+        );
     }
 }

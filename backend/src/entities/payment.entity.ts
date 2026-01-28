@@ -25,8 +25,20 @@ export class Payment {
     })
     status: PaymentStatus;
 
-    @CreateDateColumn()
+    @Column({ nullable: true })
+    paymentMethod: string; // Cash, Bank Transfer, QRIS
+
+    @Column({ nullable: true })
+    bankName: string; // BCA, Mandiri, etc.
+
+    @Column({ nullable: true })
+    referenceNumber: string; // Transaction ID for verification
+
+    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     paymentDate: Date;
+
+    @CreateDateColumn()
+    createdAt: Date;
 
     @Column({ nullable: true })
     verifiedAt: Date;

@@ -52,14 +52,23 @@ const BillingPage = () => {
 
     const handleRecordPayment = (invoice: any) => {
         setSelectedInvoice(invoice);
-        paymentForm.setFieldsValue({ amount: invoice.totalAmount - invoice.paidAmount });
+        paymentForm.setFieldsValue({
+            amount: invoice.totalAmount - invoice.paidAmount,
+            paymentDate: dayjs()
+        });
         setIsPaymentModalVisible(true);
     };
 
     const submitPayment = async () => {
         try {
             const values = await paymentForm.validateFields();
-            await api.post(`/invoices/${selectedInvoice.id}/pay`, values);
+            await api.post(`/invoices/${selectedInvoice.id}/pay`, {
+                amount: values.amount,
+                paymentDate: values.paymentDate.toISOString(),
+                paymentMethod: values.paymentMethod,
+                bankName: values.bankName,
+                referenceNumber: values.referenceNumber,
+            });
             message.success('Payment recorded and reconciled');
             setIsPaymentModalVisible(false);
             fetchInvoices();
@@ -114,6 +123,29 @@ const BillingPage = () => {
         { title: 'Unit', dataIndex: 'unit', key: 'unit', render: (u: any) => <span className="font-bold">{u?.unitNumber}</span> },
         { title: 'Amount', dataIndex: 'totalAmount', key: 'totalAmount', render: (v: number) => `Rp ${Number(v).toLocaleString()}` },
         { title: 'Paid', dataIndex: 'paidAmount', key: 'paidAmount', render: (v: number) => `Rp ${Number(v).toLocaleString()}` },
+        {
+            title: 'Payment Detail',
+            key: 'paymentDetail',
+            render: (record: any) => {
+                const latePayment = record.payments?.[record.payments.length - 1];
+                if (!latePayment) return '-';
+                return (
+                    <div className="text-[11px] leading-tight">
+                        <div><b>{latePayment.paymentMethod}</b> {latePayment.bankName && `(${latePayment.bankName})`}</div>
+                        <div className="text-gray-400">{dayjs(latePayment.paymentDate).format('DD MMM YYYY')}</div>
+                        {latePayment.referenceNumber && <div className="text-blue-500 font-mono">Ref: {latePayment.referenceNumber}</div>}
+                    </div>
+                );
+            }
+        },
+        {
+            title: 'Posted At',
+            key: 'postedAt',
+            render: (record: any) => {
+                const latePayment = record.payments?.[record.payments.length - 1];
+                return latePayment ? <Text type="secondary" className="text-[11px]">{dayjs(latePayment.createdAt).format('DD/MM/YY HH:mm')}</Text> : '-';
+            }
+        },
         {
             title: 'Status',
             dataIndex: 'status',
@@ -250,6 +282,42 @@ const BillingPage = () => {
                 okButtonProps={{ className: 'bg-green-600' }}
             >
                 <Form form={paymentForm} layout="vertical" className="mt-4">
+                    <Form.Item name="paymentDate" label="Payment Date (Tgl Bayar)" rules={[{ required: true }]}>
+                        <DatePicker className="w-full" size="large" format="DD MMM YYYY" />
+                    </Form.Item>
+                    <Row gutter={16}>
+                        <Col span={12}>
+                            <Form.Item name="paymentMethod" label="Method" rules={[{ required: true }]} initialValue="Bank Transfer">
+                                <Select size="large">
+                                    <Select.Option value="Bank Transfer">Bank Transfer</Select.Option>
+                                    <Select.Option value="Cash">Cash</Select.Option>
+                                    <Select.Option value="QRIS">QRIS</Select.Option>
+                                </Select>
+                            </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                            <Form.Item
+                                noStyle
+                                shouldUpdate={(prev, curr) => prev.paymentMethod !== curr.paymentMethod}
+                            >
+                                {({ getFieldValue }) =>
+                                    getFieldValue('paymentMethod') !== 'Cash' ? (
+                                        <Form.Item name="bankName" label="Bank Name" rules={[{ required: true }]}>
+                                            <Select size="large" placeholder="Select Bank">
+                                                <Select.Option value="BCA">BCA</Select.Option>
+                                                <Select.Option value="Mandiri">Mandiri</Select.Option>
+                                                <Select.Option value="BNI">BNI</Select.Option>
+                                                <Select.Option value="Other">Other</Select.Option>
+                                            </Select>
+                                        </Form.Item>
+                                    ) : null
+                                }
+                            </Form.Item>
+                        </Col>
+                    </Row>
+                    <Form.Item name="referenceNumber" label="Reference / Transaction ID">
+                        <Input placeholder="e.g. TRX-123456" size="large" />
+                    </Form.Item>
                     <Form.Item name="amount" label="Amount Received (Rp)" rules={[{ required: true }]}>
                         <Input type="number" size="large" prefix="Rp" />
                     </Form.Item>

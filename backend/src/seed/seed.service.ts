@@ -3,7 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, UserRole } from '../entities/user.entity';
 import { Unit } from '../entities/unit.entity';
-import { Ticket, TicketCategory, TicketStatus } from '../entities/ticket.entity';
+import { Ticket, TicketStatus } from '../entities/ticket.entity';
+import { TicketCategory } from '../entities/ticket-category.entity';
 import { Invoice, InvoiceStatus } from '../entities/invoice.entity';
 import { ActivityLog } from '../entities/activity-log.entity';
 import * as bcrypt from 'bcrypt';
@@ -63,18 +64,31 @@ export class SeedService implements OnModuleInit {
         ];
         const units = await this.unitRepo.save(unitsData);
 
+        // Categories
+        const getOrCreateCat = async (name: string, desc: string) => {
+            let cat = await this.ticketRepo.manager.findOne(TicketCategory, { where: { name } });
+            if (!cat) {
+                cat = await this.ticketRepo.manager.save(TicketCategory, { name, description: desc });
+            }
+            return cat;
+        };
+
+        const catAir = await getOrCreateCat('Air', 'Water supply and plumbing');
+        const catNet = await getOrCreateCat('Internet', 'Internet and connectivity');
+        const catSec = await getOrCreateCat('Security', 'Safety and security');
+
         // Tickets
         await this.ticketRepo.save([
             {
                 unit: units.find(u => u.unitNumber === 'B-12'),
-                category: TicketCategory.AIR,
+                category: catAir,
                 status: TicketStatus.NEW,
                 description: 'Water leak in bathroom',
                 createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000)
             },
             {
                 unit: units.find(u => u.unitNumber === 'C-07'),
-                category: TicketCategory.INTERNET,
+                category: catNet,
                 status: TicketStatus.IN_PROGRESS,
                 description: 'Internet is slow',
                 assignedTo: staff,
@@ -82,7 +96,7 @@ export class SeedService implements OnModuleInit {
             },
             {
                 unit: units.find(u => u.unitNumber === 'A-19'),
-                category: TicketCategory.SECURITY,
+                category: catSec,
                 status: TicketStatus.OVERDUE,
                 description: 'CCTV not working',
                 assignedTo: admin,

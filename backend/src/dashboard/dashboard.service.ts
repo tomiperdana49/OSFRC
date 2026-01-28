@@ -19,7 +19,9 @@ export class DashboardService {
         private activityLogRepository: Repository<ActivityLog>,
     ) { }
 
-    async getDashboardData() {
+    async getDashboardData(user: any) {
+        const isStaff = user.role === 'staff';
+
         const totalUnits = await this.unitRepository.count();
         const vacantUnits = await this.unitRepository.count({
             where: { owner: IsNull() }
@@ -31,15 +33,38 @@ export class DashboardService {
         const outstandingBalance = outstandingInvoices.reduce((acc, inv) => acc + (Number(inv.totalAmount) - Number(inv.paidAmount)), 0);
 
         const openTicketsCount = await this.ticketRepository.count({
-            where: { status: In([TicketStatus.NEW, TicketStatus.IN_PROGRESS]) },
+            where: {
+                status: TicketStatus.NEW,
+                ...(isStaff ? { assignedTo: { id: user.id } } : {})
+            },
+        });
+
+        const inProgressTicketsCount = await this.ticketRepository.count({
+            where: {
+                status: TicketStatus.IN_PROGRESS,
+                ...(isStaff ? { assignedTo: { id: user.id } } : {})
+            },
+        });
+
+        const solvedTicketsCount = await this.ticketRepository.count({
+            where: {
+                status: TicketStatus.CLOSED,
+                ...(isStaff ? { assignedTo: { id: user.id } } : {})
+            },
         });
 
         const overdueTicketsCount = await this.ticketRepository.count({
-            where: { status: TicketStatus.OVERDUE },
+            where: {
+                status: TicketStatus.OVERDUE,
+                ...(isStaff ? { assignedTo: { id: user.id } } : {})
+            },
         });
 
         const openTickets = await this.ticketRepository.find({
-            where: { status: In([TicketStatus.NEW, TicketStatus.IN_PROGRESS]) },
+            where: {
+                status: In([TicketStatus.NEW, TicketStatus.IN_PROGRESS]),
+                ...(isStaff ? { assignedTo: { id: user.id } } : {})
+            },
             relations: ['unit', 'assignedTo'],
             order: { createdAt: 'DESC' },
             take: 3,
@@ -80,6 +105,8 @@ export class DashboardService {
                 vacantUnits,
                 outstandingBalance,
                 openTickets: openTicketsCount,
+                inProgressTickets: inProgressTicketsCount,
+                solvedTickets: solvedTicketsCount,
                 overdueTickets: overdueTicketsCount,
             },
             openTickets: openTickets.map(t => ({

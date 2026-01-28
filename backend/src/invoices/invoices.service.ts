@@ -19,11 +19,11 @@ export class InvoicesService {
     async findAll() {
         await this.checkOverdue();
         await this.syncAllBalances();
-        return this.invoiceRepo.find({ relations: ['unit'], order: { period: 'DESC' } });
+        return this.invoiceRepo.find({ relations: ['unit', 'payments'], order: { period: 'DESC' } });
     }
 
     async findOne(id: number) {
-        const invoice = await this.invoiceRepo.findOne({ where: { id }, relations: ['unit'] });
+        const invoice = await this.invoiceRepo.findOne({ where: { id }, relations: ['unit', 'payments'] });
         if (!invoice) throw new NotFoundException(`Invoice #${id} not found`);
         return invoice;
     }
@@ -127,15 +127,18 @@ export class InvoicesService {
         return { deleted: true };
     }
 
-    async recordPayment(invoiceId: number, amount: number) {
+    async recordPayment(invoiceId: number, amount: number, paymentDate?: Date, paymentMethod?: string, bankName?: string, referenceNumber?: string) {
         const invoice = await this.findOne(invoiceId);
 
         const payment = this.paymentRepo.create({
             invoice,
             amount,
             status: PaymentStatus.VERIFIED,
-            paymentDate: new Date(),
+            paymentDate: paymentDate || new Date(),
             verifiedAt: new Date(),
+            paymentMethod,
+            bankName,
+            referenceNumber,
         });
 
         await this.paymentRepo.save(payment);

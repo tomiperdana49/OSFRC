@@ -1,162 +1,199 @@
 import React from 'react';
-import { Card, Table, Typography, Tag, Row, Col, Divider, List } from 'antd';
-import { BookOutlined, ClockCircleOutlined, InfoCircleOutlined, ThunderboltOutlined } from '@ant-design/icons';
+import { Card, Table, Typography, Tag, Row, Col, Divider, List, Space, Badge } from 'antd';
+import {
+    BookOutlined,
+    ClockCircleOutlined,
+    InfoCircleOutlined,
+    ThunderboltOutlined,
+    SafetyCertificateOutlined,
+    CustomerServiceOutlined,
+    CalendarOutlined
+} from '@ant-design/icons';
 
 const { Title, Text, Paragraph } = Typography;
 
 const SLAGuidePage = () => {
     const slaData = [
         {
-            category: 'Security / Emergency',
+            key: '1',
+            category: 'Security / Life Safety',
             priority: 'CRITICAL',
             time: '1 Hour',
             color: 'red',
-            description: 'Immediate response required for safety or total facility failure.'
+            description: 'Penanganan insiden keamanan, kebakaran, atau kebocoran gas yang mengancam keselamatan.'
         },
         {
-            category: 'Air / Water Leakage',
+            key: '2',
+            category: 'Water supply failure',
             priority: 'HIGH',
             time: '4 Hours',
             color: 'volcano',
-            description: 'Pressurized water leaks or total water supply disruption.'
+            description: 'Kebocoran pipa utama, pompa air mati total, atau ketiadaan suplai air ke unit.'
         },
         {
-            category: 'Electrical / Power',
+            key: '3',
+            category: 'Electrical Major',
             priority: 'HIGH',
             time: '6 Hours',
             color: 'orange',
-            description: 'Main power failure or dangerous electrical situations.'
+            description: 'Pemadaman listrik total pada satu lantai atau masalah panel listrik utama.'
         },
         {
-            category: 'Internet / Connectivity',
+            key: '4',
+            category: 'Internet & Lift',
             priority: 'MEDIUM',
             time: '24 Hours',
             color: 'blue',
-            description: 'Broadband connection issues or router failures.'
+            description: 'Gangguan jaringan internet gedung atau masalah non-darurat pada lift.'
         },
         {
-            category: 'Common Facilities',
+            key: '5',
+            category: 'Standard Maintenance',
             priority: 'LOW',
             time: '3 Working Days',
             color: 'cyan',
-            description: 'Minor repairs in gym, pool area, or corridors.'
+            description: 'Perbaikan minor seperti penggantian lampu fasilitas atau pengecatan ulang area umum.'
         }
     ];
 
     const columns = [
         {
-            title: 'Category',
+            title: 'Issue Category',
             dataIndex: 'category',
             key: 'category',
-            render: (text: string) => <Text className="font-bold text-gray-700">{text}</Text>
+            render: (text: string) => <Text strong className="text-[#2c3e50]">{text}</Text>
         },
         {
-            title: 'Default Priority',
+            title: 'Priority Level',
             dataIndex: 'priority',
             key: 'priority',
-            render: (priority: string, record: any) => <Tag color={record.color} className="font-bold">{priority}</Tag>
+            render: (priority: string, record: any) => (
+                <Tag color={record.color} className="font-bold border-none px-3 py-1 rounded-full uppercase tracking-tighter">
+                    {priority}
+                </Tag>
+            )
         },
         {
-            title: 'Response SLA',
+            title: 'Target Resolution (SLA)',
             dataIndex: 'time',
             key: 'time',
-            render: (time: string, record: any) => (
+            render: (time: string) => (
                 <Space>
-                    <ClockCircleOutlined className={`text-${record.color}-500`} />
-                    <Text className="font-mono font-bold">{time}</Text>
+                    <ClockCircleOutlined className="text-blue-500" />
+                    <Text strong className="font-mono">{time}</Text>
                 </Space>
             )
         },
         {
-            title: 'Scope / Description',
+            title: 'Scope of Work',
             dataIndex: 'description',
             key: 'description',
-            render: (text: string) => <Text type="secondary" className="text-xs">{text}</Text>
+            render: (text: string) => <Text type="secondary" className="text-xs italic">{text}</Text>
         }
     ];
 
-    // Manual Space since it's an inline import in columns
-    const Space = ({ children }: { children: React.ReactNode }) => <div className="flex items-center gap-2">{children}</div>;
-
     return (
-        <div className="p-8 bg-gray-50 min-h-screen">
-            <Row gutter={[24, 24]} className="max-w-6xl mx-auto">
-                <Col span={24}>
-                    <div className="mb-10 text-center">
-                        <BookOutlined className="text-5xl text-blue-600 mb-4" />
-                        <Title level={2} className="m-0 mb-2">Service Level Agreement (SLA) Guide</Title>
-                        <Text type="secondary" className="text-lg">Standard operating procedures and resolution timeframes for Green Valley Residence.</Text>
+        <div className="p-10 bg-gray-50 min-h-screen">
+            <div className="max-w-6xl mx-auto">
+                {/* Header Section */}
+                <div className="mb-12 text-center">
+                    <div className="inline-block p-4 bg-blue-100 rounded-2xl mb-4">
+                        <BookOutlined className="text-4xl text-blue-600" />
                     </div>
-                </Col>
+                    <Title level={1} className="!m-0 text-[#1a202c]">SLA Operational Guide</Title>
+                    <Text className="text-gray-400 text-lg">Standard Operating Procedure Green Valley Residence - Rev 2026</Text>
+                    <div className="flex justify-center gap-4 mt-6">
+                        <Badge status="processing" text="Active Policy" />
+                        <Badge status="success" text="Audited 2026" />
+                    </div>
+                </div>
 
-                <Col span={24}>
-                    <Card className="shadow-lg border-none rounded-xl overflow-hidden mb-8">
-                        <div className="bg-blue-600 p-4 text-white flex items-center gap-3">
-                            <InfoCircleOutlined style={{ fontSize: '20px' }} />
-                            <span className="font-bold text-lg uppercase tracking-wider">Ticketing Resolution Policy</span>
-                        </div>
-                        <Table
-                            columns={columns}
-                            dataSource={slaData}
-                            pagination={false}
-                            rowKey="category"
-                            className="custom-table"
-                        />
-                    </Card>
-                </Col>
+                <Row gutter={[32, 32]}>
+                    {/* Main Table Card */}
+                    <Col span={24}>
+                        <Card
+                            className="shadow-xl border-none rounded-2xl overflow-hidden"
+                            bodyStyle={{ padding: 0 }}
+                        >
+                            <div className="bg-[#2c3e50] p-6 text-white flex justify-between items-center">
+                                <Space size="middle">
+                                    <SafetyCertificateOutlined className="text-2xl text-yellow-400" />
+                                    <div>
+                                        <div className="font-bold text-lg uppercase tracking-widest">Resolution Matrix</div>
+                                        <div className="text-[10px] opacity-60">Standardized across all technical departments</div>
+                                    </div>
+                                </Space>
+                                <Tag color="gold" className="m-0">SLA-GVR-2026</Tag>
+                            </div>
+                            <Table
+                                columns={columns}
+                                dataSource={slaData}
+                                pagination={false}
+                                className="custom-table"
+                            />
+                            <div className="p-4 bg-yellow-50 text-yellow-800 text-xs border-t border-yellow-100">
+                                <InfoCircleOutlined className="mr-2" />
+                                <b>Catatan:</b> Waktu dihitung sejak ticket dalam status <b>"In Progress"</b> oleh staff.
+                            </div>
+                        </Card>
+                    </Col>
 
-                <Col md={12} span={24}>
-                    <Card
-                        title={<Space><ThunderboltOutlined className="text-yellow-500" /> <b>Definition of "Overdue"</b></Space>}
-                        className="shadow-sm border-none h-full"
-                    >
-                        <Paragraph>
-                            A ticket is marked as <Tag color="error">OVERDUE</Tag> by the system when the <b>Estimation Completion Time</b> set during the assignment has passed and the ticket status is still not <b>Closed</b>.
-                        </Paragraph>
-                        <Divider />
-                        <Title level={5}>Consequences:</Title>
-                        <List
-                            dataSource={[
-                                'Automatic escalation to Head of Operations.',
-                                'Immediate notification sent to assigned technician.',
-                                'Record saved in Staff Monthly Performance Audit.',
-                            ]}
-                            renderItem={(item) => (
-                                <List.Item className="border-none py-1">
-                                    <Text type="secondary">• {item}</Text>
-                                </List.Item>
-                            )}
-                        />
-                    </Card>
-                </Col>
+                    {/* Policy Details */}
+                    <Col md={12} span={24}>
+                        <Card
+                            title={<Space><ThunderboltOutlined className="text-orange-500" /> <b>Aturan Keterlambatan (Overdue)</b></Space>}
+                            className="shadow-md border-none rounded-xl h-full"
+                        >
+                            <Paragraph className="text-gray-600">
+                                Sistem secara otomatis akan memicu notifikasi <Tag color="error" className="m-0">Overdue</Tag> jika pengerjaan melewati batas waktu estimasi yang dijanjikan staf saat memulai pekerjaan.
+                            </Paragraph>
+                            <Title level={5}>Alur Eskalasi:</Title>
+                            <List
+                                className="mt-4"
+                                dataSource={[
+                                    'Menit 1-30: Notifikasi peringatan ke staff terkait.',
+                                    'Menit 31-60: Laporan keterlambatan masuk ke Supervisor.',
+                                    '> 1 Jam: Ticket masuk ke radar audit Manager Operational.',
+                                ]}
+                                renderItem={(item) => (
+                                    <List.Item className="border-none py-1">
+                                        <Badge status="default" text={<Text type="secondary">{item}</Text>} />
+                                    </List.Item>
+                                )}
+                            />
+                        </Card>
+                    </Col>
 
-                <Col md={12} span={24}>
-                    <Card
-                        title={<Space><ClockCircleOutlined className="text-blue-500" /> <b>Working Hours</b></Space>}
-                        className="shadow-sm border-none h-full"
-                    >
-                        <Paragraph>
-                            The SLA count is based on Operational Hours for non-emergency categories:
-                        </Paragraph>
-                        <div className="bg-gray-50 p-6 rounded-lg border border-gray-100 mt-4">
-                            <div className="flex justify-between mb-2">
-                                <Text className="font-bold">Mon - Fri</Text>
-                                <Text>08:00 - 17:00</Text>
+                    <Col md={12} span={24}>
+                        <Card
+                            title={<Space><CustomerServiceOutlined className="text-blue-500" /> <b>Jam Operasional Layanan</b></Space>}
+                            className="shadow-md border-none rounded-xl h-full"
+                        >
+                            <Paragraph className="text-gray-600">
+                                Perhitungan SLA disesuaikan dengan ketersediaan teknisi di lokasi sesuai jadwal shift reguler:
+                            </Paragraph>
+                            <div className="bg-gray-50 p-6 rounded-2xl border border-dashed border-gray-200 mt-4">
+                                <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
+                                    <Space><CalendarOutlined className="text-gray-400" /> <Text strong>Senin - Jumat</Text></Space>
+                                    <Text className="font-mono bg-white px-3 py-1 rounded shadow-sm">08:00 - 17:00</Text>
+                                </div>
+                                <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
+                                    <Space><CalendarOutlined className="text-gray-400" /> <Text strong>Sabtu</Text></Space>
+                                    <Text className="font-mono bg-white px-3 py-1 rounded shadow-sm">08:00 - 12:00</Text>
+                                </div>
+                                <div className="flex justify-between items-center text-red-500">
+                                    <Space><InfoCircleOutlined /> <Text strong className="text-red-500">Minggu & Libur</Text></Space>
+                                    <Tag color="red" className="m-0">Emergencies Only</Tag>
+                                </div>
                             </div>
-                            <div className="flex justify-between mb-2">
-                                <Text className="font-bold">Saturday</Text>
-                                <Text>08:00 - 12:00</Text>
-                            </div>
-                            <div className="flex justify-between text-red-500">
-                                <Text className="font-bold">Sunday / Holidays</Text>
-                                <Text>On-Call Emergency Only</Text>
-                            </div>
-                        </div>
-                    </Card>
-                </Col>
-            </Row>
-            <div className="p-10 text-center text-gray-400 text-xs">
-                Standard Operating Procedure - Revision 2026.1
+                        </Card>
+                    </Col>
+                </Row>
+
+                <Divider />
+                <div className="text-center text-gray-400 text-[10px] pb-10 uppercase tracking-widest">
+                    Green Valley Residence - Integrated Digital Platform © 2026
+                </div>
             </div>
         </div>
     );

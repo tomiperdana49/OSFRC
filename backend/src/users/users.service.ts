@@ -15,6 +15,13 @@ export class UsersService {
         return this.userRepo.find();
     }
 
+    async findByEmail(email: string) {
+        return this.userRepo.findOne({
+            where: { email },
+            select: ['id', 'email', 'name', 'password', 'role'] // Explicitly include password
+        });
+    }
+
     async findOne(id: number) {
         const user = await this.userRepo.findOne({ where: { id }, relations: ['units'] });
         if (!user) throw new NotFoundException('User not found');

@@ -5,7 +5,7 @@ services:
     image: mariadb:latest
     environment:
       MARIADB_ROOT_PASSWORD: root
-      MARIADB_DATABASE: wardix_residential_complex
+      MARIADB_DATABASE: residential_complex
     ports:
       - "3306:3306"
     volumes:

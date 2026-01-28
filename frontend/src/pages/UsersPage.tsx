@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Button, Card, Modal, Form, Input, Select, message, Space, Typography, Tag, Row, Col, Avatar, Upload, Popconfirm } from 'antd';
-import { UserOutlined, PlusOutlined, EditOutlined, DeleteOutlined, MailOutlined, WhatsAppOutlined, SearchOutlined, IdcardOutlined, UploadOutlined } from '@ant-design/icons';
+import { UserOutlined, PlusOutlined, EditOutlined, DeleteOutlined, MailOutlined, WhatsAppOutlined, SearchOutlined, IdcardOutlined, UploadOutlined, LockOutlined, ClockCircleOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import api from '../api';
+import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -130,6 +131,16 @@ const UsersPage = () => {
             ) : <span className="text-gray-300">-</span>
         },
         {
+            title: 'Created At',
+            dataIndex: 'createdAt',
+            key: 'createdAt',
+            render: (date: string) => (
+                <Space className="text-gray-400 text-xs">
+                    <ClockCircleOutlined /> {dayjs(date).format('DD MMM YYYY HH:mm')}
+                </Space>
+            )
+        },
+        {
             title: 'Action',
             key: 'action',
             render: (record: any) => (
@@ -186,7 +197,12 @@ const UsersPage = () => {
                             )}
                             rowKey="id"
                             loading={loading}
-                            pagination={{ pageSize: 12 }}
+                            pagination={{
+                                pageSize: 10,
+                                showSizeChanger: true,
+                                showTotal: (total) => `Total ${total} users`,
+                                position: ['bottomRight']
+                            }}
                         />
                     </Card>
                 </Col>
@@ -233,6 +249,35 @@ const UsersPage = () => {
                             <Option value="staff">Staff/Technician</Option>
                             <Option value="resident">Resident</Option>
                         </Select>
+                    </Form.Item>
+                    <Form.Item noStyle shouldUpdate={(prevValues, currentValues) => prevValues.role !== currentValues.role}>
+                        {({ getFieldValue }) => {
+                            const currentRole = getFieldValue('role');
+                            const isResidentRegistration = currentRole === 'resident' && !editingId;
+
+                            if (isResidentRegistration) {
+                                return (
+                                    <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                                        <Space>
+                                            <InfoCircleOutlined className="text-blue-500" />
+                                            <Text type="secondary" className="text-xs">
+                                                Resident akan didaftarkan dengan password default <b>"password123"</b>.
+                                            </Text>
+                                        </Space>
+                                    </div>
+                                );
+                            }
+
+                            return (
+                                <Form.Item
+                                    name="password"
+                                    label={editingId ? "New Password (leave blank to keep current)" : "Password"}
+                                    rules={[{ required: !editingId, message: 'Please input password!' }]}
+                                >
+                                    <Input.Password placeholder="••••••••" size="large" prefix={<LockOutlined className="text-gray-400" />} />
+                                </Form.Item>
+                            );
+                        }}
                     </Form.Item>
                     <Form.Item
                         noStyle
