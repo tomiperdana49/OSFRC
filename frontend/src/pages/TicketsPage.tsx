@@ -14,7 +14,7 @@ import {
     DeleteOutlined,
     UploadOutlined
 } from '@ant-design/icons';
-import { Table, Tag, Button, Typography, Spin, message, Card, Row, Col, Modal, Form, Select, Space, Input, List, Divider, Avatar, Badge, DatePicker, Popconfirm, Upload, Image } from 'antd';
+import { Table, Tag, Button, Typography, Spin, message, Card, Row, Col, Modal, Form, Select, Space, Input, List, Divider, Avatar, DatePicker, Popconfirm, Upload, Image } from 'antd';
 import api from '../api';
 import dayjs from 'dayjs';
 import { useLocation } from 'react-router-dom';
@@ -190,8 +190,8 @@ const TicketsPage = () => {
         }
     };
 
-    const priorityColors: any = { Low: 'blue', Medium: 'orange', High: 'volcano', Critical: 'red' };
-    const statusColors: any = { New: 'cyan', 'In Progress': 'processing', Closed: 'success', Overdue: 'error' };
+    const priorityColors: any = { Low: 'bg-slate-50 text-slate-600', Medium: 'bg-amber-50 text-amber-700', High: 'bg-orange-50 text-orange-700', Critical: 'bg-red-50 text-red-700' };
+    const statusColors: any = { New: 'bg-blue-50 text-blue-700', 'In Progress': 'bg-amber-50 text-amber-700', Closed: 'bg-emerald-50 text-emerald-700', Overdue: 'bg-red-50 text-red-700' };
 
     const columns = [
         {
@@ -207,13 +207,13 @@ const TicketsPage = () => {
             title: 'Priority',
             dataIndex: 'priority',
             key: 'priority',
-            render: (p: string) => <Tag color={priorityColors[p]} className="font-bold">{p?.toUpperCase()}</Tag>
+            render: (p: string) => <Tag bordered={false} className={`font-bold rounded-full px-3 ${priorityColors[p] || 'bg-gray-50 text-gray-600'}`}>{p?.toUpperCase()}</Tag>
         },
         {
             title: 'Status',
             dataIndex: 'status',
             key: 'status',
-            render: (status: string) => <Badge status={statusColors[status] as any} text={status} className="font-medium" />
+            render: (status: string) => <Tag bordered={false} className={`font-medium rounded-full px-3 ${statusColors[status] || 'bg-gray-50 text-gray-600'}`}>{status}</Tag>
         },
         {
             title: 'Estimate',
@@ -406,8 +406,8 @@ const TicketsPage = () => {
                                 </div>
                             </div>
                             <div className="text-right">
-                                <Tag color={statusColors[selectedTicket.status]} className="px-4 py-1 rounded-full">{selectedTicket.status.toUpperCase()}</Tag>
-                                <div className="mt-2"><Tag color={priorityColors[selectedTicket.priority]}>PRIORITY: {selectedTicket.priority}</Tag></div>
+                                <Tag bordered={false} className={`px-4 py-1 rounded-full font-medium ${statusColors[selectedTicket.status] || 'bg-gray-50 text-gray-600'}`}>{selectedTicket.status.toUpperCase()}</Tag>
+                                <div className="mt-2"><Tag bordered={false} className={`rounded-full px-3 font-medium ${priorityColors[selectedTicket.priority] || 'bg-gray-50 text-gray-600'}`}>PRIORITY: {selectedTicket.priority}</Tag></div>
                                 {selectedTicket.status === 'New' && selectedTicket.assignedTo?.id === userId && (
                                     <div className="mt-4">
                                         <Button

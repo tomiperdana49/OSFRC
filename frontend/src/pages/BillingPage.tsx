@@ -113,9 +113,9 @@ const BillingPage = () => {
     };
 
     const statusTags: any = {
-        'Paid': { color: 'green', icon: <CheckCircleOutlined /> },
-        'Unpaid': { color: 'gold', icon: <ThunderboltOutlined /> },
-        'Overdue': { color: 'red', icon: <ThunderboltOutlined /> },
+        'Paid': { className: 'bg-emerald-50 text-emerald-700', icon: <CheckCircleOutlined /> },
+        'Unpaid': { className: 'bg-amber-50 text-amber-700', icon: <ThunderboltOutlined /> },
+        'Overdue': { className: 'bg-red-50 text-red-700', icon: <ThunderboltOutlined /> },
     };
 
     const columns = [
@@ -151,7 +151,7 @@ const BillingPage = () => {
             dataIndex: 'status',
             key: 'status',
             render: (status: string) => (
-                <Tag color={statusTags[status]?.color} icon={statusTags[status]?.icon}>
+                <Tag bordered={false} icon={statusTags[status]?.icon} className={`rounded-full px-3 font-medium ${statusTags[status]?.className || 'bg-gray-50 text-gray-600'}`}>
                     {status.toUpperCase()}
                 </Tag>
             )

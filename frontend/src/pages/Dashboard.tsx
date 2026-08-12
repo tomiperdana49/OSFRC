@@ -84,10 +84,13 @@ const Dashboard = () => {
             dataIndex: 'status',
             key: 'status',
             render: (status: string) => {
-                let color = 'blue';
-                if (status === 'Overdue') color = 'red';
-                if (status === 'New') color = 'cyan';
-                return <Tag color={color}>{status}</Tag>;
+                const styles: Record<string, string> = {
+                    'New': 'bg-blue-50 text-blue-700',
+                    'In Progress': 'bg-amber-50 text-amber-700',
+                    'Closed': 'bg-emerald-50 text-emerald-700',
+                    'Overdue': 'bg-red-50 text-red-700',
+                };
+                return <Tag bordered={false} className={`rounded-full px-3 font-medium ${styles[status] || 'bg-gray-50 text-gray-600'}`}>{status}</Tag>;
             }
         },
         { title: 'Age', dataIndex: 'age', key: 'age' },
@@ -125,8 +128,8 @@ const Dashboard = () => {
                         title="Outstanding Balance"
                         value={`Rp ${data.kpi.outstandingBalance / 1000000} jt`}
                         icon={<WalletOutlined />}
-                        iconBg="bg-indigo-50"
-                        iconColor="text-indigo-600"
+                        iconBg="bg-blue-50"
+                        iconColor="text-blue-600"
                         onClick={() => navigate('/billing')}
                     />
                 </div>
@@ -137,8 +140,8 @@ const Dashboard = () => {
                     title="New (Open)"
                     value={data.kpi.openTickets}
                     icon={<FileAddOutlined />}
-                    iconBg="bg-sky-50"
-                    iconColor="text-sky-600"
+                    iconBg="bg-blue-50"
+                    iconColor="text-blue-600"
                     onClick={() => navigate('/tickets?status=new')}
                 />
                 <StatCard
