@@ -29,5 +29,5 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Backend specific
-uploads/
+# Backend specific (runtime storage only, not backend/src/uploads source module)
+/backend/uploads/
