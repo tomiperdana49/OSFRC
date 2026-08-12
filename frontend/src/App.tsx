@@ -1,4 +1,5 @@
 import React from 'react';
+import { ConfigProvider } from 'antd';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import TicketsPage from './pages/TicketsPage';
@@ -31,31 +32,67 @@ const ProtectedRoute = ({ children, roles }: { children: React.ReactNode, roles?
 
 function App() {
     return (
-        <Router>
-            <Routes>
-                <Route path="/login" element={<LoginPage />} />
-                <Route
-                    path="/*"
-                    element={
-                        <ProtectedRoute>
-                            <MainLayout>
-                                <Routes>
-                                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                                    <Route path="/dashboard" element={<Dashboard />} />
-                                    <Route path="/units" element={<ProtectedRoute roles={['admin']}><UnitsPage /></ProtectedRoute>} />
-                                    <Route path="/billing" element={<ProtectedRoute roles={['admin']}><BillingPage /></ProtectedRoute>} />
-                                    <Route path="/tickets" element={<TicketsPage />} />
-                                    <Route path="/announcements" element={<ProtectedRoute roles={['admin']}><AnnouncementsPage /></ProtectedRoute>} />
-                                    <Route path="/users" element={<ProtectedRoute roles={['admin']}><UsersPage /></ProtectedRoute>} />
-                                    <Route path="/sla-guide" element={<ProtectedRoute roles={['admin']}><SLAGuidePage /></ProtectedRoute>} />
-                                    <Route path="/settings" element={<ProtectedRoute roles={['admin']}><SettingsPage /></ProtectedRoute>} />
-                                </Routes>
-                            </MainLayout>
-                        </ProtectedRoute>
-                    }
-                />
-            </Routes>
-        </Router>
+        <ConfigProvider
+            theme={{
+                token: {
+                    colorPrimary: '#1e3a8a',
+                    colorLink: '#1e3a8a',
+                    borderRadius: 10,
+                    fontFamily: "'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif",
+                },
+                components: {
+                    Card: {
+                        borderRadiusLG: 16,
+                        headerFontSize: 15,
+                    },
+                    Button: {
+                        borderRadius: 8,
+                        fontWeight: 500,
+                    },
+                    Table: {
+                        headerBg: '#f8fafc',
+                        headerColor: '#64748b',
+                        borderColor: '#f1f5f9',
+                    },
+                    Menu: {
+                        itemBorderRadius: 8,
+                        itemSelectedBg: '#eef2ff',
+                        itemSelectedColor: '#1e3a8a',
+                        itemHeight: 44,
+                    },
+                    Layout: {
+                        headerBg: '#ffffff',
+                        siderBg: '#ffffff',
+                    },
+                },
+            }}
+        >
+            <Router>
+                <Routes>
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route
+                        path="/*"
+                        element={
+                            <ProtectedRoute>
+                                <MainLayout>
+                                    <Routes>
+                                        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                                        <Route path="/dashboard" element={<Dashboard />} />
+                                        <Route path="/units" element={<ProtectedRoute roles={['admin']}><UnitsPage /></ProtectedRoute>} />
+                                        <Route path="/billing" element={<ProtectedRoute roles={['admin']}><BillingPage /></ProtectedRoute>} />
+                                        <Route path="/tickets" element={<TicketsPage />} />
+                                        <Route path="/announcements" element={<ProtectedRoute roles={['admin']}><AnnouncementsPage /></ProtectedRoute>} />
+                                        <Route path="/users" element={<ProtectedRoute roles={['admin']}><UsersPage /></ProtectedRoute>} />
+                                        <Route path="/sla-guide" element={<ProtectedRoute roles={['admin']}><SLAGuidePage /></ProtectedRoute>} />
+                                        <Route path="/settings" element={<ProtectedRoute roles={['admin']}><SettingsPage /></ProtectedRoute>} />
+                                    </Routes>
+                                </MainLayout>
+                            </ProtectedRoute>
+                        }
+                    />
+                </Routes>
+            </Router>
+        </ConfigProvider>
     );
 }
 

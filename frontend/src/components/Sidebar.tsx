@@ -8,7 +8,8 @@ import {
     NotificationOutlined,
     UserOutlined,
     BookOutlined,
-    SettingOutlined
+    SettingOutlined,
+    ApartmentOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -44,20 +45,25 @@ const Sidebar = () => {
         <Sider
             breakpoint="lg"
             collapsedWidth="0"
-            className="min-h-screen shadow-lg"
+            className="min-h-screen border-r border-gray-100"
             theme="light"
             width={260}
         >
-            <div className="p-6 text-center border-b border-gray-100">
-                <h1 className="text-xl font-bold text-primary m-0 uppercase tracking-tighter">OSFRC</h1>
-                <p className="text-[10px] text-gray-400 m-0">Operational System for Residential Complex</p>
+            <div className="p-6 flex items-center gap-3 border-b border-gray-100">
+                <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white text-lg shrink-0">
+                    <ApartmentOutlined />
+                </div>
+                <div className="min-w-0">
+                    <h1 className="text-base font-bold text-gray-900 m-0 leading-tight">OSFRC</h1>
+                    <p className="text-[10px] text-gray-400 m-0 leading-tight truncate">Operational System for Residential Complex</p>
+                </div>
             </div>
             <Menu
                 mode="inline"
                 selectedKeys={[location.pathname === '/dashboard' ? '/' : location.pathname]}
                 items={menuItems}
                 onClick={({ key }) => navigate(key)}
-                className="pt-4 border-none"
+                className="pt-4 px-3 border-none"
             />
         </Sider>
     );

@@ -1,17 +1,44 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Table, Tag, Button, Typography, Spin, message, Row, Col, Statistic } from 'antd';
 import {
-    PlusOutlined,
-    DollarOutlined,
     NotificationOutlined,
-    HomeOutlined,
-    DownOutlined
+    ApartmentOutlined,
+    UserDeleteOutlined,
+    WalletOutlined,
+    FileAddOutlined,
+    SyncOutlined,
+    CheckCircleOutlined,
+    WarningOutlined,
+    ToolOutlined,
+    RightOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
+
+const StatCard = ({ title, value, icon, iconBg, iconColor, onClick }: {
+    title: string;
+    value: React.ReactNode;
+    icon: React.ReactNode;
+    iconBg: string;
+    iconColor: string;
+    onClick?: () => void;
+}) => (
+    <div
+        className="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-5 flex items-center gap-4 cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5"
+        onClick={onClick}
+    >
+        <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 ${iconBg} ${iconColor}`}>
+            {icon}
+        </div>
+        <div className="min-w-0">
+            <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider truncate">{title}</div>
+            <div className="text-2xl font-bold text-gray-900 mt-0.5">{value}</div>
+        </div>
+    </div>
+);
 
 const Dashboard = () => {
     const navigate = useNavigate();
@@ -75,65 +102,87 @@ const Dashboard = () => {
                 <Text type="secondary">Here is what is happening today in {dayjs().format('MMMM YYYY')}</Text>
             </div>
 
-            {/* KPI Cards Grid */}
-
-            {/* Main Unit KPIs (2 Columns as requested)            {/* KPI Cards Grid */}
+            {/* Main Unit KPIs */}
             {role === 'admin' && (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
-                    {[
-                        { title: 'Total Units', value: data.kpi.totalUnits, color: 'bg-[#4a77b4]', path: '/units' },
-                        { title: 'Units without Owner', value: data.kpi.vacantUnits, color: 'bg-[#5c88c4]', path: '/units?filter=vacant' },
-                        { title: 'Outstanding Balance', value: `Rp ${data.kpi.outstandingBalance / 1000000} jt`, color: 'bg-[#7ba0c1]', path: '/billing' },
-                    ].map((card, index) => (
-                        <div
-                            key={index}
-                            className="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden transform transition hover:scale-[1.01] cursor-pointer flex flex-col"
-                            onClick={() => navigate(card.path)}
-                        >
-                            <div className={`${card.color} text-white text-center py-3 font-bold text-[11px] uppercase tracking-widest`}>
-                                {card.title}
-                            </div>
-                            <div className="flex-grow flex items-center justify-center py-8 text-4xl font-black text-[#2e3b4e]">
-                                {card.value}
-                            </div>
-                        </div>
-                    ))}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-6">
+                    <StatCard
+                        title="Total Units"
+                        value={data.kpi.totalUnits}
+                        icon={<ApartmentOutlined />}
+                        iconBg="bg-blue-50"
+                        iconColor="text-blue-600"
+                        onClick={() => navigate('/units')}
+                    />
+                    <StatCard
+                        title="Units without Owner"
+                        value={data.kpi.vacantUnits}
+                        icon={<UserDeleteOutlined />}
+                        iconBg="bg-slate-100"
+                        iconColor="text-slate-500"
+                        onClick={() => navigate('/units?filter=vacant')}
+                    />
+                    <StatCard
+                        title="Outstanding Balance"
+                        value={`Rp ${data.kpi.outstandingBalance / 1000000} jt`}
+                        icon={<WalletOutlined />}
+                        iconBg="bg-indigo-50"
+                        iconColor="text-indigo-600"
+                        onClick={() => navigate('/billing')}
+                    />
                 </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                {[
-                    { title: 'New (Open)', value: data.kpi.openTickets, color: 'bg-[#40739e]', path: '/tickets?status=new' },
-                    { title: 'In Progress', value: data.kpi.inProgressTickets, color: 'bg-[#f39c12]', path: '/tickets?status=in-progress' },
-                    { title: 'Solved', value: data.kpi.solvedTickets, color: 'bg-[#27ae60]', path: '/tickets?status=closed' },
-                    { title: 'Overdue', value: data.kpi.overdueTickets, color: 'bg-[#d14b4b]', path: '/tickets?status=overdue' },
-                ].map((card, index) => (
-                    <div
-                        key={index}
-                        className="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden transform transition hover:scale-[1.01] cursor-pointer flex flex-col"
-                        onClick={() => navigate(card.path)}
-                    >
-                        <div className={`${card.color} text-white text-center py-3 font-bold text-[11px] uppercase tracking-widest`}>
-                            {card.title}
-                        </div>
-                        <div className="flex-grow flex items-center justify-center py-8 text-4xl font-black text-[#2e3b4e]">
-                            {card.value}
-                        </div>
-                    </div>
-                ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+                <StatCard
+                    title="New (Open)"
+                    value={data.kpi.openTickets}
+                    icon={<FileAddOutlined />}
+                    iconBg="bg-sky-50"
+                    iconColor="text-sky-600"
+                    onClick={() => navigate('/tickets?status=new')}
+                />
+                <StatCard
+                    title="In Progress"
+                    value={data.kpi.inProgressTickets}
+                    icon={<SyncOutlined />}
+                    iconBg="bg-amber-50"
+                    iconColor="text-amber-600"
+                    onClick={() => navigate('/tickets?status=in-progress')}
+                />
+                <StatCard
+                    title="Solved"
+                    value={data.kpi.solvedTickets}
+                    icon={<CheckCircleOutlined />}
+                    iconBg="bg-emerald-50"
+                    iconColor="text-emerald-600"
+                    onClick={() => navigate('/tickets?status=closed')}
+                />
+                <StatCard
+                    title="Overdue"
+                    value={data.kpi.overdueTickets}
+                    icon={<WarningOutlined />}
+                    iconBg="bg-red-50"
+                    iconColor="text-red-600"
+                    onClick={() => navigate('/tickets?status=overdue')}
+                />
             </div>
 
             {/* Panels */}
             <div className={`grid grid-cols-1 ${role === 'admin' ? 'lg:grid-cols-2' : ''} gap-8 mb-10`}>
                 {/* Open Tickets */}
                 <Card
-                    title={<span className="text-white font-bold px-2">Open Tickets</span>}
+                    title={
+                        <span className="flex items-center gap-2 py-1">
+                            <ToolOutlined className="text-primary" />
+                            <span className="font-semibold text-gray-800">Open Tickets</span>
+                        </span>
+                    }
                     variant="borderless"
                     styles={{
-                        header: { backgroundColor: '#4a77b4', borderRadius: '4px 4px 0 0', minHeight: '45px' },
+                        header: { borderBottom: '1px solid #f1f5f9' },
                         body: { padding: 0 }
                     }}
-                    className="shadow-sm border border-gray-100 overflow-hidden"
+                    className="shadow-sm ring-1 ring-gray-100 overflow-hidden"
                 >
                     <Table
                         columns={ticketColumns}
@@ -142,13 +191,13 @@ const Dashboard = () => {
                         size="middle"
                         className="custom-table"
                     />
-                    <div className="p-4 text-center border-t bg-gray-50/50">
-                        <Button type="link" className="text-[#4a77b4] font-bold" onClick={() => navigate('/tickets')}>View All Tickets &gt;</Button>
+                    <div className="p-3 text-center border-t border-gray-50 bg-gray-50/50">
+                        <Button type="link" icon={<RightOutlined className="text-[10px]" />} iconPosition="end" className="text-primary font-semibold" onClick={() => navigate('/tickets')}>View All Tickets</Button>
                     </div>
 
                     {/* Integrated Activity Log */}
-                    <div className="border-t">
-                        <div className="bg-gray-50 px-4 py-2 flex items-center gap-2 border-b">
+                    <div className="border-t border-gray-50">
+                        <div className="bg-gray-50 px-4 py-2 flex items-center gap-2 border-b border-gray-100">
                             <NotificationOutlined className="text-gray-400 text-xs" />
                             <span className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">Recent Activity</span>
                         </div>
@@ -168,10 +217,18 @@ const Dashboard = () => {
                 {/* Billing Summary (ONLY ADMIN) */}
                 {role === 'admin' && (
                     <Card
-                        title={<Title level={5} className="m-0 text-[#4a77b4] font-bold">Billing Summary - {data.billingSummary.period}</Title>}
+                        title={
+                            <span className="flex items-center gap-2 py-1">
+                                <WalletOutlined className="text-primary" />
+                                <span className="font-semibold text-gray-800">Billing Summary &mdash; {data.billingSummary.period}</span>
+                            </span>
+                        }
                         variant="borderless"
-                        styles={{ body: { padding: '2rem' } }}
-                        className="shadow-sm border border-gray-100"
+                        styles={{
+                            header: { borderBottom: '1px solid #f1f5f9' },
+                            body: { padding: '1.75rem 2rem' }
+                        }}
+                        className="shadow-sm ring-1 ring-gray-100"
                     >
                         <div className="space-y-5">
                             <div className="flex justify-between items-center border-b border-gray-50 pb-3">
@@ -205,13 +262,14 @@ const Dashboard = () => {
                                 </div>
                             </div>
 
-                            <div className="pt-8 text-center mt-4">
+                            <div className="pt-6 text-center mt-2">
                                 <Button
-                                    type="link"
-                                    className="text-[#4a77b4] font-bold border rounded px-6 py-1 hover:bg-[#4a77b4] hover:text-white transition-all"
+                                    className="text-primary font-semibold border-primary/30 hover:!bg-primary hover:!text-white hover:!border-primary transition-all px-6"
+                                    icon={<RightOutlined className="text-[10px]" />}
+                                    iconPosition="end"
                                     onClick={() => navigate('/billing')}
                                 >
-                                    View Billing Details &gt;
+                                    View Billing Details
                                 </Button>
                             </div>
                         </div>
